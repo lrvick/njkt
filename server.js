@@ -5,6 +5,7 @@ var config = {
       host: 'nodejs.org',
       target_port: 80,
       listen_port: 8042,
+      script: '<script>alert("hi")</script>',
     };
 
 console.log('Forwarding Reqs to: ' + config.host)
@@ -22,7 +23,7 @@ var server = http.createServer(function(frontendReq, frontendRes) {
 
   // Before emitting end inject script
   injector._flush = function(callback) {
-    this.push('<script>alert("hi")</script>')
+    this.push(config.script)
     callback()
   }
 
@@ -46,7 +47,7 @@ var server = http.createServer(function(frontendReq, frontendRes) {
 
     if (contentType === 'text/html') {
       // If this is an html page, inject our scripts and update header
-      headers['content-length'] = parseInt(contentLength, 10) + 28
+      headers['content-length'] = parseInt(contentLength, 10) + config.script.length
       frontendRes.writeHead(statusCode, headers)
       backendRes.pipe(injector).pipe(frontendRes)
     } else {
