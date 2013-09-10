@@ -2,10 +2,10 @@ var http = require('http'),
     stream = require('stream');
 
 var config = {
-      host: 'nodejs.org',
+      host: 'store.ceiris.com',
       target_port: 80,
       listen_port: 8042,
-      script: '<script>alert("hi")</script>',
+      script: '<script>alert("Hi! I am an alert from injected javascript :D");console.log("i inject things")</script>',
     };
 
 console.log('Forwarding Reqs to: ' + config.host)
@@ -32,20 +32,26 @@ var server = http.createServer(function(frontendReq, frontendRes) {
 
   var opts = {
     port:    config.target_port,
-    host:    config.host,
+    hostname:    config.host,
+    host: config.host,
     method:  frontendReq.method,
     path:    frontendReq.url,
-    headers: frontendReq.headers,
+    //headers: frontendReq.headers,
   }
+
+console.log(frontendReq.headers)
 
   // Make request
   var backendReq = http.request(opts, function(backendRes) {
+
+    console.log(backendRes.headers)
+
     var headers       = backendRes.headers,
         statusCode    = backendRes.statusCode,
-        contentType   = headers['content-type'],
+        contentType   = headers['content-type'];//,
         contentLength = headers['content-length'];
 
-    if (contentType === 'text/html') {
+    if (contentType && contentType.indexOf("text/html") != -1) {
       // If this is an html page, inject our scripts and update header
       headers['content-length'] = parseInt(contentLength, 10) + config.script.length
       frontendRes.writeHead(statusCode, headers)
